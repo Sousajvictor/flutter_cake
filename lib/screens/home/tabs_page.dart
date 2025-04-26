@@ -41,7 +41,7 @@ class _TabsPageState extends State<TabsPage> {
                     TextField(
                       controller: _textController,
                       decoration: InputDecoration(
-                        labelText: 'Nome do Estabelecimento:',
+                        labelText: 'Nome do Estabelecimento',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),

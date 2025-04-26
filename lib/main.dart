@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_bolo/screens/home/home_page.dart';
-import 'package:projeto_bolo/screens/home/tabs_page.dart';
-import 'package:projeto_bolo/screens/home/watch_page.dart';
 import 'core/theme.dart';
 
 //import 'screens/home/home_page.dart';
@@ -18,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: AppTheme.theme,
-      home: WatchPage(),
+      home: HomePage(title: 'Confeitarias'),
     );
   }
 }
