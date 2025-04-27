@@ -176,7 +176,7 @@ class _AdicionarProdutoPageState extends State<AdicionarProdutoPage> {
 
               ElevatedButton(
                 onPressed: _salvarProduto,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.brown),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                 child: const Text('Salvar Produto e Voltar'),
               ),
             ],
