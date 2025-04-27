@@ -1,67 +1,145 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:projeto_bolo/database/database_helper.dart';
+import 'package:projeto_bolo/produto.dart'; // Classe Produto
+import 'package:projeto_bolo/confeitaria.dart';
+import 'package:projeto_bolo/screens/home/add_produto.dart'; // Classe Confeitaria
 
 class WatchPage extends StatefulWidget {
-  const WatchPage({super.key});
+  final Confeitaria confeitaria; // Confeitaria passada como parâmetro
+
+  const WatchPage({required this.confeitaria, super.key});
 
   @override
-  State<WatchPage> createState() => _WatchPageState();
+  State<WatchPage> createState() => _Watchpage();
 }
 
-class _WatchPageState extends State<WatchPage> {
+class _Watchpage extends State<WatchPage> {
+  late Future<List<Produto>> _produtos;
 
-  final List<String> imageUrls = [
-    'Imagem 1',
-    'Imagem 2',
-    'Imagem 3',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _produtos = _carregarProdutos();
+  }
 
+  // Função para carregar os produtos do banco
+  Future<List<Produto>> _carregarProdutos() async {
+    return await DatabaseHelper.instance.listarProdutosDaConfeitaria(widget.confeitaria.id!);
+  }
 
-  Widget buildCarouseltItem(String text) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: 500,
-        height: 500,
-        color: Colors.green,
-        child: Center(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
+  // Função para excluir um produto
+  void _excluirProduto(int produtoId) async {
+    await DatabaseHelper.instance.deletarProduto(produtoId);
+    setState(() {
+      _produtos = _carregarProdutos();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Produto excluído com sucesso!')),
     );
+  }
+
+  // Função para editar um produto
+  void _editarProduto(Produto produto) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AdicionarProdutoPage(confeitaria: widget.confeitaria, 
+      produto: produto,)),
+    ); // Redirecionar para a tela de edição (você precisará implementar a tela de edição)
+    // Navigator.push(...);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Visualizar Produtos'),
+        backgroundColor: Colors.brown,
+      ),
       body: Column(
         children: [
-          SizedBox(height: 10),
-          Align(
-            alignment: Alignment.topCenter,
-            child: Container(
-              height: 150,
-              width: 150,
-              color: Colors.blueAccent,
+          // Informações da Confeitaria
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Nome do Estabelecimento: ${widget.confeitaria.nome}',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                Text('Telefone: ${widget.confeitaria.telefone}'),
+                const SizedBox(height: 5),
+                Text('Endereço: ${widget.confeitaria.rua}'),
+                const SizedBox(height: 5,),
+                Text('Numero: ${widget.confeitaria.numero}')
+              ],
             ),
           ),
-          const SizedBox(height: 20),
-          CarouselSlider(
-            options: CarouselOptions(
-              height: 150,
-              autoPlay: true,
-              enlargeCenterPage: true,
-              enableInfiniteScroll: true,
-              viewportFraction: 0.8,
+          const Divider(), // Linha separadora entre informações da confeitaria e lista de produtos
+
+          // Lista de produtos
+          Expanded(
+            child: FutureBuilder<List<Produto>>(
+              future: _produtos,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('Nenhum produto encontrado.'));
+                }
+
+                return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final produto = snapshot.data![index];
+
+                    return Card(
+                      margin: const EdgeInsets.all(10),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Nome do Produto: ${produto.nome}',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 10),
+                            // Exibição da imagem
+                            produto.imagem != null
+                                ? Image.file(File(produto.imagem!), width: 150, height: 150, fit: BoxFit.cover)
+                                : const Icon(Icons.image, size: 150, color: Colors.grey),
+                            const SizedBox(height: 10),
+                            Text('Valor: R\$ ${produto.valor.toStringAsFixed(2)}'),
+                            const SizedBox(height: 10),
+                            Text('Descrição: ${produto.descricao}'),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () => _editarProduto(produto),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () => _excluirProduto(produto.id!),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
-            items: imageUrls.map(buildCarouseltItem).toList(),
           ),
         ],
       ),

@@ -4,7 +4,9 @@ import '../../widgets/list_item.dart';
 
 class HomeBody extends StatelessWidget {
   final List<Confeitaria> lista;
-  const HomeBody(this.lista, {super.key});
+  final VoidCallback onAtualizarLista;
+
+  const HomeBody(this.lista, {required this.onAtualizarLista, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +18,10 @@ class HomeBody extends StatelessWidget {
           slivers: [
             SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, index) => ListItem(lista[index]),
+                (context, index) => ListItem(
+                  lista[index],
+                  onAtualizarLista: onAtualizarLista,
+                ),
                 childCount: lista.length,
               ),
             ),
